@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Tools</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Initialize Firebase -->
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAFEe5uaGTwhKmkjWby1_KYE4pkwLkX37o",
+            authDomain: "fintools-c716d.firebaseapp.com",
+            projectId: "fintools-c716d",
+            storageBucket: "fintools-c716d.firebasestorage.app",
+            messagingSenderId: "437646316644",
+            appId: "1:437646316644:web:31c3f4c39e2040c2f6fb71",
+            measurementId: "G-VF79ED3PLR"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+    </script>
+    
+    <style>
+        /* Your existing CSS styles remain exactly the same */
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Body with background image */
+        body {
+            background-image: url('emi1.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        body::before {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                to bottom right, 
+                rgba(255, 255, 255, 0.1), 
+                rgba(255, 255, 255, 0.2)
+            );
+            z-index: -1;
+        }
+
+        /* Auth Container Styles */
+        .auth-container {
+            max-width: 500px;
+            margin: 3rem auto;
+            padding: 0 1rem;
+        }
+
+        .auth-header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .auth-header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #555;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            color: #2c3e50;
+            border-bottom-color: #3498db;
+            font-weight: bold;
+        }
+
+        .auth-forms {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .auth-form h2 {
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .auth-btn {
+            width: 100%;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .auth-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .auth-footer {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .forgot-password {
+            color: #3498db;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        /* Error Styles */
+        .input-error {
+            border-color: #e74c3c !important;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .password-strength {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+            color: #555;
+        }
+
+        /* Dashboard Styles */
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard-header {
+            background-color: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 1rem 2rem;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #logout-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #logout-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .tools-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .tool-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tool-tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #555;
+            transition: all 0.3s;
+        }
+
+        .tool-tab.active {
+            color: #2c3e50;
+            border-bottom-color: #3498db;
+            font-weight: bold;
+        }
+
+        .tool {
+            display: none;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool.active {
+            display: block;
+        }
+
+        .tool h2 {
+            margin-bottom: 1.5rem;
+            color: #2c3e50;
+        }
+
+        .calculate-btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .calculate-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .result-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: rgba(248, 249, 250, 0.9);
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+
+        .result-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #555;
+        }
+
+        .result-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .chart-container {
+            margin-top: 20px;
+            height: 300px;
+            position: relative;
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: rgba(44, 62, 80, 0.9);
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .auth-container {
+                margin: 1.5rem auto;
+            }
+            
+            .auth-forms {
+                padding: 1.5rem;
+            }
+            
+            .tab-btn {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .tool-tabs {
+                flex-direction: column;
+                border-bottom: none;
+            }
+            
+            .tool-tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+                text-align: left;
+            }
+            
+            .tool-tab.active {
+                border-left-color: #3498db;
+                border-bottom: none;
+            }
+            
+            .tool {
+                padding: 1.5rem;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-forms {
+                padding: 1rem;
+            }
+            
+            .form-group input {
+                padding: 0.6rem;
+            }
+            
+            .auth-btn {
+                padding: 0.6rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Section -->
+    <div id="auth-section">
+        <div class="auth-header">
+            <div class="logo">FinTools</div>
+        </div>
+        
+        <div class="auth-container">
+            <div class="auth-tabs">
+                <button class="tab-btn active" id="login-tab">Login</button>
+                <button class="tab-btn" id="signup-tab">Sign Up</button>
+            </div>
+            
+            <div class="auth-forms">
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form active">
+                    <h2>Login to Your Account</h2>
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                        <div class="error-message" id="login-email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                        <div class="error-message" id="login-password-error"></div>
+                    </div>
+                    <button type="submit" class="auth-btn">Login</button>
+                    <div class="auth-footer">
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+                </form>
+                
+                <!-- Signup Form -->
+                <form id="signup-form" class="auth-form">
+                    <h2>Create New Account</h2>
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <input type="text" id="signup-name" required>
+                        <div class="error-message" id="signup-name-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email</label>
+                        <input type="email" id="signup-email" required>
+                        <div class="error-message" id="signup-email-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <input type="password" id="signup-password" required>
+                        <div class="error-message" id="signup-password-error"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Confirm Password</label>
+                        <input type="password" id="signup-confirm-password" required>
+                        <div class="error-message" id="signup-confirm-password-error"></div>
+                    </div>
+                    <button type="submit" class="auth-btn">Sign Up</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Section (Hidden by default) -->
+    <div id="dashboard-section" class="dashboard">
+        <header class="dashboard-header">
+            <nav>
+                <div class="logo">FinTools</div>
+                <div class="user-menu">
+                    <span id="username-display">User</span>
+                    <button id="logout-btn">Logout</button>
+                </div>
+            </nav>
+        </header>
+
+        <main class="tools-container">
+            <div class="tool-tabs">
+                <button class="tool-tab active" data-tool="emi">EMI Calculator</button>
+                <button class="tool-tab" data-tool="interest">Interest Finder</button>
+            </div>
+
+            <div class="tool-content">
+                <!-- EMI Calculator -->
+                <div id="emi-calculator" class="tool active">
+                    <h2>EMI Calculator</h2>
+                    <form id="emi-form">
+                        <div class="form-group">
+                            <label for="loan-amount">Loan Amount (₹)</label>
+                            <input type="number" id="loan-amount" min="1000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="interest-rate">Interest Rate (% p.a.)</label>
+                            <input type="number" id="interest-rate" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loan-tenure">Loan Tenure (months)</label>
+                            <input type="number" id="loan-tenure" min="1" max="600" placeholder="e.g., 36 for 3 years" required>
+                        </div>
+                        <button type="submit" class="calculate-btn">Calculate EMI</button>
+                    </form>
+                    <div id="emi-result" class="result-container">
+                        <!-- Results will be displayed here -->
+                        <div class="chart-container">
+                            <canvas id="emiChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interest Finder -->
+                <div id="interest-calculator" class="tool">
+                    <h2>Interest Finder</h2>
+                    <form id="interest-form">
+                        <div class="form-group">
+                            <label for="principal">Principal Amount (₹)</label>
+                            <input type="number" id="principal" min="1000" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="time">Time Period (months)</label>
+                            <input type="number" id="time" min="1" max="600" placeholder="e.g., 24 for 2 years" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="final-amount">Final Amount (₹)</label>
+                            <input type="number" id="final-amount" min="1000" required>
+                        </div>
+                        <button type="submit" class="calculate-btn">Calculate Interest Rate</button>
+                    </form>
+                    <div id="interest-result" class="result-container">
+                        <!-- Results will be displayed here -->
+                        <div class="chart-container">
+                            <canvas id="interestChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        © Developed by Naved Khan
+    </footer>
+
+    <script>
+        // Authentication and Tab Switching
+        document.addEventListener('DOMContentLoaded', function() {
+            // Helper functions
+            function showError(elementId, message) {
+                const element = document.getElementById(elementId);
+                element.textContent = message;
+                element.style.display = 'block';
+                return false;
+            }
+
+            function hideError(elementId) {
+                const element = document.getElementById(elementId);
+                element.style.display = 'none';
+                return true;
+            }
+
+            function validateEmail(email) {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(String(email).toLowerCase());
+            }
+
+            // Show auth section and hide dashboard by default
+            document.getElementById('auth-section').style.display = 'block';
+            document.getElementById('dashboard-section').style.display = 'none';
+
+            // Check auth state
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    document.getElementById('auth-section').style.display = 'none';
+                    document.getElementById('dashboard-section').style.display = 'block';
+                    document.getElementById('username-display').textContent = user.email;
+                } else {
+                    // User is signed out
+                    document.getElementById('auth-section').style.display = 'block';
+                    document.getElementById('dashboard-section').style.display = 'none';
+                }
+            });
+
+            // Tab switching functionality
+            const loginTab = document.getElementById('login-tab');
+            const signupTab = document.getElementById('signup-tab');
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+            
+            if (loginTab && signupTab) {
+                loginTab.addEventListener('click', function() {
+                    loginTab.classList.add('active');
+                    signupTab.classList.remove('active');
+                    loginForm.classList.add('active');
+                    signupForm.classList.remove('active');
+                });
+                
+                signupTab.addEventListener('click', function() {
+                    signupTab.classList.add('active');
+                    loginTab.classList.remove('active');
+                    signupForm.classList.add('active');
+                    loginForm.classList.remove('active');
+                });
+            }
+            
+            // Real-time validation for signup email
+            document.getElementById('signup-email').addEventListener('blur', function() {
+                const email = this.value.trim().toLowerCase();
+                if (!email) {
+                    showError('signup-email-error', 'Email is required');
+                    this.classList.add('input-error');
+                    return;
+                }
+                
+                if (!validateEmail(email)) {
+                    showError('signup-email-error', 'Please enter a valid email');
+                    this.classList.add('input-error');
+                } else {
+                    hideError('signup-email-error');
+                    this.classList.remove('input-error');
+                }
+            });
+
+            // Real-time password strength check
+            document.getElementById('signup-password').addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                
+                if (password.length >= 6) strength++;
+                if (password.match(/[A-Z]/)) strength++;
+                if (password.match(/[0-9]/)) strength++;
+                if (password.match(/[^A-Za-z0-9]/)) strength++;
+                
+                const strengthText = ['Weak', 'Fair', 'Good', 'Strong'][strength];
+                const strengthColor = ['#e74c3c', '#f39c12', '#3498db', '#2ecc71'][strength];
+                
+                let indicator = this.parentNode.querySelector('.password-strength');
+                if (!indicator) {
+                    indicator = document.createElement('div');
+                    indicator.className = 'password-strength';
+                    this.parentNode.appendChild(indicator);
+                }
+                indicator.innerHTML = `Strength: <span style="color:${strengthColor}">${strengthText}</span>`;
+            });
+
+            // Real-time password confirmation check
+            document.getElementById('signup-confirm-password').addEventListener('input', function() {
+                const password = document.getElementById('signup-password').value;
+                const confirmPassword = this.value;
+                
+                if (password !== confirmPassword) {
+                    showError('signup-confirm-password-error', 'Passwords do not match');
+                    this.classList.add('input-error');
+                } else {
+                    hideError('signup-confirm-password-error');
+                    this.classList.remove('input-error');
+                }
+            });
+
+            // Login form submission
+            const loginFormElement = document.getElementById('login-form');
+            if (loginFormElement) {
+                loginFormElement.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const email = document.getElementById('login-email').value.trim();
+                    const password = document.getElementById('login-password').value;
+                    let isValid = true;
+                    
+                    // Validation checks
+                    if (!email) {
+                        showError('login-email-error', 'Email is required');
+                        document.getElementById('login-email').classList.add('input-error');
+                        isValid = false;
+                    } else if (!validateEmail(email)) {
+                        showError('login-email-error', 'Please enter a valid email');
+                        document.getElementById('login-email').classList.add('input-error');
+                        isValid = false;
+                    } else {
+                        hideError('login-email-error');
+                        document.getElementById('login-email').classList.remove('input-error');
+                    }
+                    
+                    if (!password) {
+                        showError('login-password-error', 'Password is required');
+                        document.getElementById('login-password').classList.add('input-error');
+                        isValid = false;
+                    } else {
+                        hideError('login-password-error');
+                        document.getElementById('login-password').classList.remove('input-error');
+                    }
+                    
+                    if (!isValid) return;
+                    
+                    // Firebase login
+                    auth.signInWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Signed in
+                            const user = userCredential.user;
+                            document.getElementById('username-display').textContent = user.email;
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            
+                            if (errorCode === 'auth/user-not-found') {
+                                showError('login-email-error', 'No account found with this email');
+                                document.getElementById('login-email').classList.add('input-error');
+                            } else if (errorCode === 'auth/wrong-password') {
+                                showError('login-password-error', 'Incorrect password');
+                                document.getElementById('login-password').classList.add('input-error');
+                            } else {
+                                alert(errorMessage);
+                            }
+                        });
+                });
+            }
+            
+            // Signup form submission
+            const signupFormElement = document.getElementById('signup-form');
+            if (signupFormElement) {
+                signupFormElement.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const name = document.getElementById('signup-name').value.trim();
+                    const email = document.getElementById('signup-email').value.trim();
+                    const password = document.getElementById('signup-password').value;
+                    const confirmPassword = document.getElementById('signup-confirm-password').value;
+                    let isValid = true;
+                    
+                    // Validation checks
+                    if (!name) {
+                        showError('signup-name-error', 'Full name is required');
+                        document.getElementById('signup-name').classList.add('input-error');
+                        isValid = false;
+                    } else {
+                        hideError('signup-name-error');
+                        document.getElementById('signup-name').classList.remove('input-error');
+                    }
+                    
+                    if (!email) {
+                        showError('signup-email-error', 'Email is required');
+                        document.getElementById('signup-email').classList.add('input-error');
+                        isValid = false;
+                    } else if (!validateEmail(email)) {
+                        showError('signup-email-error', 'Please enter a valid email');
+                        document.getElementById('signup-email').classList.add('input-error');
+                        isValid = false;
+                    } else {
+                        hideError('signup-email-error');
+                        document.getElementById('signup-email').classList.remove('input-error');
+                    }
+                    
+                    if (!password) {
+                        showError('signup-password-error', 'Password is required');
+                        document.getElementById('signup-password').classList.add('input-error');
+                        isValid = false;
+                    } else if (password.length < 6) {
+                        showError('signup-password-error', 'Password must be at least 6 characters');
+                        document.getElementById('signup-password').classList.add('input-error');
+                        isValid = false;
+                    } else {
+                        hideError('signup-password-error');
+                        document.getElementById('signup-password').classList.remove('input-error');
+                    }
+                    
+                    if (!confirmPassword) {
+                        showError('signup-confirm-password-error', 'Please confirm your password');
+                        document.getElementById('signup-confirm-password').classList.add('input-error');
+                        isValid = false;
+                    } else if (password !== confirmPassword) {
+                        showError('signup-confirm-password-error', 'Passwords do not match');
+                        document.getElementById('signup-confirm-password').classList.add('input-error');
+                        isValid = false;
+                    } else {
+                        hideError('signup-confirm-password-error');
+                        document.getElementById('signup-confirm-password').classList.remove('input-error');
+                    }
+                    
+                    if (!isValid) return;
+                    
+                    // Firebase registration
+                    auth.createUserWithEmailAndPassword(email, password)
+                        .then((userCredential) => {
+                            // Signed up
+                            const user = userCredential.user;
+                            document.getElementById('username-display').textContent = name || email;
+                        })
+                        .catch((error) => {
+                            const errorCode = error.code;
+                            const errorMessage = error.message;
+                            
+                            if (errorCode === 'auth/email-already-in-use') {
+                                showError('signup-email-error', 'This email is already registered');
+                                document.getElementById('signup-email').classList.add('input-error');
+                            } else if (errorCode === 'auth/weak-password') {
+                                showError('signup-password-error', 'Password should be at least 6 characters');
+                                document.getElementById('signup-password').classList.add('input-error');
+                            } else {
+                                alert(errorMessage);
+                            }
+                        });
+                });
+            }
+            
+            // Tool tab switching on dashboard
+            const toolTabs = document.querySelectorAll('.tool-tab');
+            if (toolTabs.length > 0) {
+                toolTabs.forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        // Remove active class from all tabs and tools
+                        document.querySelectorAll('.tool-tab').forEach(t => t.classList.remove('active'));
+                        document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
+                        
+                        // Add active class to clicked tab
+                        this.classList.add('active');
+                        
+                        // Show corresponding tool
+                        const toolId = this.getAttribute('data-tool');
+                        document.getElementById(`${toolId}-calculator`).classList.add('active');
+                    });
+                });
+            }
+            
+            // Logout functionality
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    auth.signOut().then(() => {
+                        // Sign-out successful
+                        document.getElementById('auth-section').style.display = 'block';
+                        document.getElementById('dashboard-section').style.display = 'none';
+                        
+                        // Clear forms
+                        document.getElementById('login-form').reset();
+                        document.getElementById('signup-form').reset();
+                        
+                        // Clear errors
+                        document.querySelectorAll('.error-message').forEach(el => {
+                            el.style.display = 'none';
+                        });
+                        document.querySelectorAll('.input-error').forEach(el => {
+                            el.classList.remove('input-error');
+                        });
+                        
+                        // Switch back to login tab
+                        loginTab.click();
+                    }).catch((error) => {
+                        alert(error.message);
+                    });
+                });
+            }
+            
+            // Chart instances storage
+            const charts = {
+                emi: null,
+                interest: null
+            };
+            
+            // EMI Chart Function
+            function createEMIChart(loanAmount, totalInterest) {
+                const ctx = document.getElementById('emiChart').getContext('2d');
+                
+                // Destroy previous chart if it exists
+                if (charts.emi) {
+                    charts.emi.destroy();
+                }
+                
+                charts.emi = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Principal', 'Interest'],
+                        datasets: [{
+                            data: [loanAmount, totalInterest],
+                            backgroundColor: [
+                                '#3498db',
+                                '#e74c3c'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ₹${context.raw.toLocaleString('en-IN')}`;
+                                    }
+                                }
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Interest Chart Function
+            function createInterestChart(principal, interest) {
+                const ctx = document.getElementById('interestChart').getContext('2d');
+                
+                // Destroy previous chart if it exists
+                if (charts.interest) {
+                    charts.interest.destroy();
+                }
+                
+                charts.interest = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Principal', 'Interest Earned'],
+                        datasets: [{
+                            label: 'Amount (₹)',
+                            data: [principal, interest],
+                            backgroundColor: [
+                                '#3498db',
+                                '#2ecc71'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '₹' + value.toLocaleString('en-IN');
+                                    }
+                                }
+                            }
+                        },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.dataset.label}: ₹${context.raw.toLocaleString('en-IN')}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // EMI Calculator
+            const emiForm = document.getElementById('emi-form');
+            if (emiForm) {
+                emiForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get input values
+                    const loanAmount = parseFloat(document.getElementById('loan-amount').value);
+                    const interestRate = parseFloat(document.getElementById('interest-rate').value);
+                    const loanTenureMonths = parseFloat(document.getElementById('loan-tenure').value);
+                    
+                    // Validate inputs
+                    if (isNaN(loanAmount) || isNaN(interestRate) || isNaN(loanTenureMonths)) {
+                        alert('Please enter valid numbers for all fields');
+                        return;
+                    }
+                    
+                    if (loanAmount <= 0 || interestRate <= 0 || loanTenureMonths <= 0) {
+                        alert('All values must be greater than zero');
+                        return;
+                    }
+                    
+                    // Calculate EMI (now using months directly)
+                    const monthlyInterestRate = interestRate / 12 / 100;
+                    const emi = loanAmount * monthlyInterestRate * 
+                               Math.pow(1 + monthlyInterestRate, loanTenureMonths) / 
+                               (Math.pow(1 + monthlyInterestRate, loanTenureMonths) - 1);
+                    
+                    const totalPayment = emi * loanTenureMonths;
+                    const totalInterest = totalPayment - loanAmount;
+                    const loanTenureYears = (loanTenureMonths / 12).toFixed(1);
+                    
+                    // Display results
+                    const resultContainer = document.getElementById('emi-result');
+                    resultContainer.innerHTML = `
+                        <div class="result-item">
+                            <span class="result-label">Monthly EMI:</span>
+                            <span class="result-value">₹${emi.toFixed(2)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Payment:</span>
+                            <span class="result-value">₹${totalPayment.toFixed(2)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Interest:</span>
+                            <span class="result-value">₹${totalInterest.toFixed(2)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Loan Tenure:</span>
+                            <span class="result-value">${loanTenureMonths} months (${loanTenureYears} years)</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="emiChart"></canvas>
+                        </div>
+                    `;
+                    
+                    // Create chart
+                    createEMIChart(loanAmount, totalInterest);
+                });
+            }
+            
+            // Interest Calculator
+            const interestForm = document.getElementById('interest-form');
+            if (interestForm) {
+                interestForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    // Get input values
+                    const principal = parseFloat(document.getElementById('principal').value);
+                    const timeMonths = parseFloat(document.getElementById('time').value);
+                    const finalAmount = parseFloat(document.getElementById('final-amount').value);
+                    
+                    // Validate inputs
+                    if (isNaN(principal) || isNaN(timeMonths) || isNaN(finalAmount)) {
+                        alert('Please enter valid numbers for all fields');
+                        return;
+                    }
+                    
+                    if (principal <= 0 || timeMonths <= 0 || finalAmount <= 0) {
+                        alert('All values must be greater than zero');
+                        return;
+                    }
+                    
+                    if (finalAmount <= principal) {
+                        alert('Final amount must be greater than principal');
+                        return;
+                    }
+                    
+                    // Convert months to years for interest calculations
+                    const timeYears = timeMonths / 12;
+                    const interest = finalAmount - principal;
+                    
+                    // Calculate interest rates
+                    const simpleRate = (interest * 100) / (principal * timeYears);
+                    
+                    let compoundRate = 0;
+                    if (timeYears > 0 && principal > 0) {
+                        compoundRate = (Math.pow(finalAmount / principal, 1 / timeYears) - 1) * 100;
+                    }
+                    
+                    // Display results
+                    const resultContainer = document.getElementById('interest-result');
+                    resultContainer.innerHTML = `
+                        <div class="result-item">
+                            <span class="result-label">Simple Interest Rate:</span>
+                            <span class="result-value">${simpleRate.toFixed(2)}% p.a.</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Compound Interest Rate (approx):</span>
+                            <span class="result-value">${compoundRate.toFixed(2)}% p.a.</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Total Interest Earned:</span>
+                            <span class="result-value">₹${interest.toFixed(2)}</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Duration:</span>
+                            <span class="result-value">${timeMonths} months (${timeYears.toFixed(1)} years)</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Note:</span>
+                            <span class="result-value">Simple interest assumes interest is not reinvested. Compound rate is an approximation.</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="interestChart"></canvas>
+                        </div>
+                    `;
+                    
+                    // Create chart
+                    createInterestChart(principal, interest);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
